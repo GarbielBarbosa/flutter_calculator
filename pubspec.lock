@@ -8,6 +8,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.6.1"
+  auto_size_text_field:
+    dependency: "direct main"
+    description:
+      name: auto_size_text_field
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0-nullsafety.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -81,6 +88,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.10"
+  math_expressions:
+    dependency: "direct main"
+    description:
+      name: math_expressions
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.1"
   meta:
     dependency: transitive
     description:

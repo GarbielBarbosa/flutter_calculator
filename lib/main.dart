@@ -1,5 +1,8 @@
+import 'package:auto_size_text_field/auto_size_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
+import 'package:math_expressions/math_expressions.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,24 +31,25 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final options = [
+    "Back",
     "AC",
     "%",
     "*",
-    "/",
     "7",
     "8",
     "9",
-    "-",
+    "/",
     "4",
     "5",
     "6",
-    "+",
+    "-",
     "1",
     "2",
     "3",
-    "=",
+    "+",
     "0",
-    "."
+    ".",
+    "="
   ];
 
   var operation = "";
@@ -53,11 +57,14 @@ class _MyHomePageState extends State<MyHomePage> {
   var a;
   var b;
   var currentOp;
+  final _operationController = new TextEditingController();
+
+  final _lastOperationController = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color.fromRGBO(68, 73, 78, 1),
       body: SafeArea(
         top: true,
         bottom: true,
@@ -65,20 +72,57 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Expanded(
               flex: 2,
-              child: Container(
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.only(right: 24, bottom: 36, left: 24),
-                    child: Text(
-                      operation,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 50,
-                        fontWeight: FontWeight.w500,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 24, bottom: 10, left: 24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      const BoxShadow(
+                        color: Color.fromRGBO(68, 73, 78, 1),
                       ),
-                    ),
+                      const BoxShadow(
+                        color: Color.fromRGBO(220, 225, 230, 0.1),
+                        spreadRadius: 0,
+                        blurRadius: 12.0,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      AutoSizeTextField(
+                        controller: _lastOperationController,
+                        textInputAction: TextInputAction.next,
+                        textAlign: TextAlign.end,
+                        decoration: InputDecoration.collapsed(
+                          hintText: "",
+                          border: InputBorder.none,
+                        ),
+                        style: TextStyle(
+                          color: Color.fromRGBO(237, 156, 61, 0.8),
+                          fontSize: 15,
+                        ),
+                        minLines: 1,
+                        maxLines: 2,
+                        enabled: false,
+                      ),
+                      AutoSizeTextField(
+                        controller: _operationController,
+                        textInputAction: TextInputAction.next,
+                        textAlign: TextAlign.end,
+                        decoration: InputDecoration.collapsed(
+                          hintText: "",
+                          border: InputBorder.none,
+                        ),
+                        style: TextStyle(
+                          color: Color.fromRGBO(237, 156, 61, 1),
+                          fontSize: 50,
+                        ),
+                        minLines: 1,
+                        maxLines: 3,
+                        enabled: false,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -88,157 +132,159 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: StaggeredGridView.countBuilder(
                   padding: EdgeInsets.zero,
                   crossAxisCount: 4,
-                  itemCount: 18,
+                  itemCount: 19,
                   itemBuilder: (BuildContext context, int index) =>
                       GestureDetector(
                     onTap: () {
                       final op = options[index];
-                      operation += options[index];
-
-                      if (a != null && b != null && currentOp != null) {
-                        if (currentOp == "+") {
-                          result = a + b;
-                        } else if (currentOp == "-") {
-                          result = a - b;
-                        } else if (currentOp == "/") {
-                          result = a / b;
-                        } else if (currentOp == "%") {
-                          result = a % b;
-                        } else if (currentOp == "*") {
-                          result = a * b;
-                        }
-                        a = result;
-                        b = null;
-                      }
 
                       switch (op) {
                         case "AC":
                           {
-                            a = null;
-                            b = null;
-                            result = 0.0;
-                            operation = "";
+                            _lastOperationController.text = '';
+                            _operationController.text = '';
                             break;
                           }
-                        case "+":
+                        case "Back":
                           {
-                            currentOp = op;
-                            break;
-                          }
-                        case "-":
-                          {
-                            currentOp = op;
-                            break;
-                          }
-                        case "*":
-                          {
-                            currentOp = op;
-                            break;
-                          }
-                        case "/":
-                          {
-                            currentOp = op;
+                            _operationController.text =
+                                _operationController.text.substring(
+                                    0, _operationController.text.length - 1);
                             break;
                           }
                         case "=":
                           {
-                            operation = result.toString();
+                            _lastOperationController.text =
+                                _operationController.text;
+                            Parser p = new Parser();
+                            Expression exp = p.parse(_operationController.text);
+                            _operationController.text = exp
+                                .evaluate(EvaluationType.REAL, ContextModel())
+                                .toString()
+                                .replaceAll('.0', '');
                             break;
                           }
                         default:
                           {
-                            if (a == null) {
-                              a = double.parse(op);
-                            } else {
-                              b = double.parse(op);
-                            }
+                            _operationController.text += options[index];
                           }
                       }
-                      // final op = options[index];
-
-                      // if (op == "=") {
-                      //   final items = operation.split("");
-                      //   var number = 0.0;
-                      //   //0 1 2 3 4
-                      //   //1 + 2 + 4 - Size(5)
-                      //   //3+4 - Size(3)
-                      //   //7 - Size(1)
-                      //   for (var i = 0; i + 1 < items.length / 3; i++) {
-                      //     final a = i % 2 == 0 ? (i + 1) : (i + 2);
-                      //     switch (items[a]) {
-                      //       case '%':
-                      //         {
-                      //           number += double.parse(items[i]) %
-                      //               double.parse(items[i + 2]);
-                      //         }
-                      //         break;
-                      //       case '÷':
-                      //         {
-                      //           number += double.parse(items[i]) /
-                      //               double.parse(items[i + 2]);
-                      //         }
-                      //         break;
-                      //       case '*':
-                      //         {
-                      //           number += double.parse(items[i]) *
-                      //               double.parse(items[i + 2]);
-                      //         }
-                      //         break;
-                      //       case '+':
-                      //         {
-                      //           number += double.parse(items[i]) +
-                      //               double.parse(items[i + 2]);
-                      //         }
-                      //         break;
-                      //       case '-':
-                      //         {
-                      //           number += double.parse(items[i]) -
-                      //               double.parse(items[i + 2]);
-                      //         }
-                      //         break;
-                      //       default:
-                      //         {
-                      //           number += 0.0;
-                      //         }
-                      //     }
-                      //   }
-                      //   operation = number.toString();
-                      // } else if (op == "AC") {
-                      //   operation = "";
-                      // } else {
-                      //   operation += options[index];
-                      // }
-
                       setState(() {});
                     },
-                    child: Container(
-                        color:
-                            index == 15 ? Color(0xFFF57C00) : Color(0xFF212121),
-                        child: Center(
-                          child: Text(
-                            options[index],
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 28),
-                          ),
-                        )),
+                    child: buildContainer(index),
                   ),
                   staggeredTileBuilder: (int index) {
-                    if (index == 15) {
-                      return StaggeredTile.count(1, 2);
-                    } else if (index == 16) {
+                    if (index == 18) {
                       return StaggeredTile.count(2, 1);
                     } else {
                       return StaggeredTile.count(1, 1);
                     }
                   },
                   mainAxisSpacing: 4.0,
-                  crossAxisSpacing: 4.0,
                 )),
           ],
         ),
       ),
     );
+  }
+
+  Container buildContainer(int i) {
+    if (i == 2 || i == 3 || i == 7 || i == 11 || i == 15) {
+      return Container(
+        child: Center(
+          child: Stack(
+            children: [
+              Container(
+                height: 65,
+                child: Center(
+                  child: Text(
+                    options[i],
+                    style: TextStyle(
+                        color: fontColorController(i),
+                        fontFamily: 'Fira Code',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28),
+                  ),
+                ),
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color.fromRGBO(237, 156, 61, 0.8)),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (i == 0) {
+      return Container(
+        child: Center(
+          child: Stack(
+            children: [
+              Container(
+                height: 80,
+                child: Center(
+                  child: Icon(
+                    Icons.backspace,
+                    color: fontColorController(i),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (i == 18) {
+      return Container(
+        child: Center(
+          child: Stack(
+            children: [
+              Center(
+                child: Container(
+                  height: 80,
+                  width: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(100),
+                    color: Color.fromRGBO(237, 156, 61, 0.8),
+                  ),
+                ),
+              ),
+              Center(
+                child: Text(
+                  options[i],
+                  style: TextStyle(
+                      color: fontColorController(i),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        color: Color.fromRGBO(68, 73, 78, 1),
+        child: Center(
+          child: Text(
+            options[i],
+            style: TextStyle(
+              color: fontColorController(i),
+              fontWeight: FontWeight.bold,
+              fontSize: 28,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  fontColorController(i) {
+    if (i == 15 || i == 2 || i == 3 || i == 7 || i == 11 || i == 18) {
+      return Color.fromRGBO(68, 73, 78, 1);
+    } else if (i == 0 || i == 1) {
+      return Color.fromRGBO(237, 156, 61, 1);
+    } else {
+      return Color.fromRGBO(177, 181, 182, 1);
+    }
   }
 }
